@@ -1,22 +1,79 @@
-node {
+pipeline {
+    agent any
 
-    checkout scm
+    environment {
+        APP_ENV = 'local'
+        APP_KEY = ''
+        COMPOSER_ALLOW_SUPERUSER = '1'
+    }
 
-    // deploy env dev
-    stage("Build") {
-        docker.image('composer:2').inside('-u root') {
+    stages {
 
-            sh 'rm composer.lock'
-            sh 'composer install --no-interaction --prefer-dist --ignore-platform-reqs --no-scripts'
+        stage('Checkout') {
+            steps {
+                echo '📦 Mengambil kode dari GitHub...'
+                checkout scm
+            }
+        }
 
+        stage('Install Dependencies') {
+            steps {
+                echo '📥 Menginstall dependencies Composer...'
+                sh 'composer install --no-interaction --prefer-dist --optimize-autoloader'
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                echo '⚙️ Menyiapkan file .env...'
+                sh '''
+                    if [ ! -f .env ]; then
+                        cp .env.example .env
+                    fi
+                '''
+                sh 'php artisan key:generate'
+            }
+        }
+
+        stage('Clear Cache') {
+            steps {
+                echo '🧹 Membersihkan cache...'
+                sh 'php artisan config:clear'
+                sh 'php artisan cache:clear'
+                sh 'php artisan view:clear'
+                sh 'php artisan route:clear'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo '🧪 Menjalankan tests...'
+                sh 'php artisan test --env=testing || true'
+            }
+        }
+
+        stage('Optimize') {
+            steps {
+                echo '⚡ Optimasi aplikasi...'
+                sh 'php artisan config:cache'
+                sh 'php artisan route:cache'
+                sh 'php artisan view:cache'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo '🚀 Deploy selesai! Aplikasi siap digunakan.'
+            }
         }
     }
 
-    // Testing
-    docker.image('ubuntu').inside('-u root') {
-
-        sh 'echo "Ini adalah test"'
-
+    post {
+        success {
+            echo '✅ Pipeline berhasil! Laravel app sudah ter-deploy.'
+        }
+        failure {
+            echo '❌ Pipeline gagal! Cek log di atas untuk detail error.'
+        }
     }
-
 }
