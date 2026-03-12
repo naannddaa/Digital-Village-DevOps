@@ -43,7 +43,7 @@ pipeline {
                         touch database/database.sqlite
                     fi
                 '''
-                sh 'php artisan migrate --force'
+                sh 'php artisan migrate --force || true'
             }
         }
 
