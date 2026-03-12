@@ -50,10 +50,10 @@ pipeline {
         stage('Clear Cache') {
             steps {
                 echo '🧹 Membersihkan cache...'
-                sh 'php artisan config:clear'
-                sh 'php artisan cache:clear'
-                sh 'php artisan view:clear'
-                sh 'php artisan route:clear'
+                sh 'php artisan config:clear || true'
+                sh 'php artisan cache:clear || true'
+                sh 'php artisan view:clear || true'
+                sh 'php artisan route:clear || true'
             }
         }
 
@@ -67,9 +67,9 @@ pipeline {
         stage('Optimize') {
             steps {
                 echo '⚡ Optimasi aplikasi...'
-                sh 'php artisan config:cache'
-                sh 'php artisan route:cache'
-                sh 'php artisan view:cache'
+                sh 'php artisan config:cache || true'
+                sh 'php artisan route:cache || true'
+                sh 'php artisan view:cache || true'
             }
         }
 
