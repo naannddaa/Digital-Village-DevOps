@@ -36,26 +36,26 @@ pipeline {
         }
 
         stage('Setup Database') {
-    steps {
-        echo '🗄️ Menyiapkan database SQLite...'
-        sh '''
-            if [ ! -f database/database.sqlite ]; then
-                touch database/database.sqlite
-            fi
-        '''
-        sh 'php artisan migrate --force || true'
-    }
-}
+            steps {
+                echo '🗄️ Menyiapkan database SQLite...'
+                sh '''
+                    if [ ! -f database/database.sqlite ]; then
+                        touch database/database.sqlite
+                    fi
+                '''
+                sh 'php artisan migrate --force'
+            }
+        }
 
         stage('Clear Cache') {
             steps {
                 echo '🧹 Membersihkan cache...'
-                sh 'php artisan config:clear || true'
-                sh 'php artisan cache:clear || true'
-                sh 'php artisan view:clear || true'
-                sh 'php artisan route:clear || true'
+                sh 'php artisan config:clear'
+                sh 'php artisan cache:clear'
+                sh 'php artisan view:clear'
+                sh 'php artisan route:clear'
             }
-}
+        }
 
         stage('Run Tests') {
             steps {
@@ -75,7 +75,17 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo '🚀 Deploy selesai! Aplikasi siap digunakan.'
+                echo '🚀 Deploy ke folder lokal...'
+                sh '''
+                    DEPLOY_PATH="/home/nandapintar/prod.digitalvillage"
+                    mkdir -p $DEPLOY_PATH
+                    rsync -av --delete \
+                        --exclude=".env" \
+                        --exclude=".git" \
+                        --exclude="storage/logs" \
+                        ./ $DEPLOY_PATH/
+                    echo "✅ Deploy selesai ke $DEPLOY_PATH"
+                '''
             }
         }
     }
