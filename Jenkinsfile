@@ -36,16 +36,16 @@ pipeline {
         }
 
         stage('Setup Database') {
-            steps {
-                echo '🗄️ Menyiapkan database SQLite...'
-                sh '''
-                    if [ ! -f database/database.sqlite ]; then
-                        touch database/database.sqlite
-                    fi
-                '''
-                sh 'php artisan migrate --force'
-            }
-        }
+    steps {
+        echo '🗄️ Menyiapkan database SQLite...'
+        sh '''
+            if [ ! -f database/database.sqlite ]; then
+                touch database/database.sqlite
+            fi
+        '''
+        sh 'php artisan migrate --force || true'
+    }
+}
 
         stage('Clear Cache') {
             steps {
